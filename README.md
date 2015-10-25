@@ -10,6 +10,10 @@ Supports:
 * [RocksDB](http://rocksdb.org/) via [pyrocksdb](http://pyrocksdb.readthedocs.org/en/v0.4/)
 * [Sqlite4 LSM DB](https://www.sqlite.org/src4/doc/trunk/www/lsmusr.wiki) via [python-lsm-db](http://lsm-db.readthedocs.org/en/latest/)
 
+Right now KyotoCabinet is the most well-supported database, but the SQLite4 LSM is also pretty robust. The other databases implement the minimal slicing APIs to enable the Model/Secondary Indexing APIs to work.
+
+This project should be considered **experimental**.
+
 ### Examples
 
 `kvkit` provides indexing and slicing operations. Slices are inclusive of both endpoints.
