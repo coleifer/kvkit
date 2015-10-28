@@ -30,6 +30,9 @@ class Node(object):
     __gt__ = _e('>')
     __ge__ = _e('>=')
 
+    def startswith(self, prefix):
+        return Expression(self, 'startswith', prefix)
+
 
 class Expression(Node):
     def __init__(self, lhs, op, rhs):
@@ -392,7 +395,7 @@ class Index(object):
         else:
             return '%s\xff%s%s' % (
                 self.name,
-                self.field.db_value(value) if value else '',
+                self.field.db_value(value),
                 '\xff' if closed else '')
 
     def store(self, value, primary_key):
@@ -429,3 +432,7 @@ class Index(object):
             end_key = self.stop_key
             results = self.database[start_key:end_key]
             return [v for k, v in results if not k.startswith(match)][:-1]
+        elif operation == 'startswith':
+            start_key = self.get_prefix(value)
+            end_key = start_key + '\xff\xff'
+            return [value for key, value in self.database[start_key:end_key]]

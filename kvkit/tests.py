@@ -430,6 +430,22 @@ class ModelTests(object):
             self.Person.last == 'owen',
             ['zaizee', 'beanie', 'scout'])
 
+    def test_startswith(self):
+        names = ('aaa', 'aab', 'abb', 'bbb', 'ba')
+        for name in names:
+            self.Person.create(first=name, last=name)
+
+        self.assertPeople(
+            self.Person.last.startswith('a'),
+            ['aaa', 'aab', 'abb'])
+
+        self.assertPeople(self.Person.last.startswith('aa'), ['aaa', 'aab'])
+        self.assertPeople(self.Person.last.startswith('aaa'), ['aaa'])
+        self.assertPeople(self.Person.last.startswith('aaaa'), [])
+        self.assertPeople(self.Person.last.startswith('b'), ['bbb', 'ba'])
+        self.assertPeople(self.Person.last.startswith('bb'), ['bbb'])
+        self.assertPeople(self.Person.last.startswith('c'), [])
+
     def test_query_tree(self):
         self._create_people()
 
@@ -520,8 +536,8 @@ class ModelTests(object):
 
         # Lower than smallest.
         self.assertNumeric(X < 1, [])
-        #self.assertNumeric(self.Numeric.x < 0, [])  # XXX: ??
-        #self.assertNumeric(self.Numeric.x <= 0, [])
+        self.assertNumeric(self.Numeric.x < 0, [])  # XXX: ??
+        self.assertNumeric(self.Numeric.x <= 0, [])
 
         # Floats.
         self.assertNumeric(Y == 4.0, [3])
@@ -543,8 +559,8 @@ class ModelTests(object):
 
         # Lower than smallest.
         self.assertNumeric(Y < 2.0, [])
-        #self.assertNumeric(self.Numeric.y < 0, [])  # XXX: ??
-        #self.assertNumeric(self.Numeric.y <= 0, [])
+        self.assertNumeric(self.Numeric.y < 0, [])  # XXX: ??
+        self.assertNumeric(self.Numeric.y <= 0, [])
 
     def test_query_numeric_complex(self):
         # 1, 2, 3, 10, 11   ---   2., 3., 4., 10., 11.
