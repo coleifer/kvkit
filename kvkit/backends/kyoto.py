@@ -223,12 +223,17 @@ class Database(object):
     def __len__(self):
         return self.db.count()
 
-    def update(self, **kwargs):
+    def update(self, _data=None, **kwargs):
         """
         Update multiple records atomically. Returns the number of records
         updated, raising a `DatabaseError` on error.
         """
-        ret = self.db.set_bulk(kwargs, True)
+        if _data:
+            if kwargs:
+                _data.update(kwargs)
+            ret = self.db.set_bulk(_data, True)
+        else:
+            ret = self.db.set_bulk(kwargs, True)
         if ret < 0:
             raise DatabaseError('Error updating records: %s' % self.db.error())
         return ret

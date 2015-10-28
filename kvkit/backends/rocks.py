@@ -47,8 +47,10 @@ class RocksDB(KVHelper):
     def __delitem__(self, key):
         self.db.delete(key)
 
-    def update(self, **kwargs):
-        batch = self.db.WriteBatch()
+    def update(self, _data=None, **kwargs):
+        batch = rocksdb.WriteBatch()
+        if _data:
+            kwargs.update(_data)
         for key, value in kwargs.iteritems():
             batch.put(key, value)
         self.db.write(batch)

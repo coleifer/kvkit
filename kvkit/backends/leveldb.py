@@ -55,8 +55,10 @@ class LevelDB(KVHelper):
     def __delitem__(self, key):
         self.db.delete(key)
 
-    def update(self, **kwargs):
+    def update(self, _data=None, **kwargs):
         batch = self.db.write_batch()
+        if _data:
+            kwargs.update(_data)
         for key, value in kwargs.iteritems():
             batch.put(key, value)
         batch.write()
