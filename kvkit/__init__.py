@@ -34,6 +34,7 @@ try:
 except ImportError:
     pass
 
+from kvkit.graph import Hexastore
 from kvkit.query import DateField
 from kvkit.query import DateTimeField
 from kvkit.query import Field
@@ -42,4 +43,4 @@ from kvkit.query import LongField
 from kvkit.query import Model
 
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
