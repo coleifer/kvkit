@@ -577,6 +577,8 @@ class GraphTests(object):
             ('charlie', 'likes', 'mickey'),
             ('charlie', 'likes', 'zaizee'),
             ('charlie', 'is', 'human'),
+            ('connor', 'likes', 'huey'),
+            ('connor', 'likes', 'mickey'),
             ('huey', 'eats', 'catfood'),
             ('huey', 'is', 'cat'),
             ('mickey', 'eats', 'anything'),
@@ -584,8 +586,46 @@ class GraphTests(object):
             ('zaizee', 'eats', 'catfood'),
             ('zaizee', 'is', 'cat'),
         )
-        for triple in data:
-            self.H.store(*triple)
+        self.H.store_many(data)
+
+    def test_search_extended(self):
+        self.create_graph_data()
+        X = self.H.v.x
+        Y = self.H.v.y
+        Z = self.H.v.z
+        result = self.H.search(
+            (X, 'likes', Y),
+            (Y, 'is', 'cat'),
+            (Z, 'likes', Y))
+        self.assertEqual(result['x'], set(['charlie', 'connor']))
+        self.assertEqual(result['y'], set(['huey', 'zaizee']))
+        self.assertEqual(result['z'], set(['charlie', 'connor']))
+
+        self.H.store_many((
+            ('charlie', 'likes', 'connor'),
+            ('connor', 'likes', 'charlie'),
+            ('connor', 'is', 'baby'),
+            ('connor', 'is', 'human'),
+            ('nash', 'is', 'baby'),
+            ('nash', 'is', 'human'),
+            ('connor', 'lives', 'ks'),
+            ('nash', 'lives', 'nv'),
+            ('charlie', 'lives', 'ks')))
+
+        result = self.H.search(
+            ('charlie', 'likes', X),
+            (X, 'is', 'baby'),
+            (X, 'lives', 'ks'))
+        self.assertEqual(result, {'x': set(['connor'])})
+
+        result = self.H.search(
+            (X, 'is', 'baby'),
+            (X, 'likes', Y),
+            (Y, 'lives', 'ks'))
+        self.assertEqual(result, {
+            'x': set(['connor']),
+            'y': set(['charlie']),
+        })
 
     def assertTriples(self, result, expected):
         result = list(result)
@@ -616,24 +656,24 @@ class GraphTests(object):
         ))
 
         res = self.H.query(o='huey')
-        self.assertTriples(res, (('charlie', 'likes', 'huey'),))
+        self.assertTriples(res, (
+            ('charlie', 'likes', 'huey'),
+            ('connor', 'likes', 'huey'),
+        ))
 
     def test_search(self):
         self.create_graph_data()
         X = self.H.v('x')
-        result = self.H.search([
+        result = self.H.search(
             {'s': 'charlie', 'p': 'likes', 'o': X},
             {'s': X, 'p': 'eats', 'o': 'catfood'},
-            {'s': X, 'p': 'is', 'o': 'cat'},
-        ])
+            {'s': X, 'p': 'is', 'o': 'cat'})
         self.assertEqual(result, {'x': set(['huey', 'zaizee'])})
 
     def test_search_simple(self):
         self.create_friends()
         X = self.H.v('x')
-        result = self.H.search([
-            {'s': X, 'p': 'friend', 'o': 'charlie'},
-        ])
+        result = self.H.search({'s': X, 'p': 'friend', 'o': 'charlie'})
         self.assertEqual(result, {'x': set(['huey', 'zaizee'])})
 
     def test_search_2var(self):
@@ -641,30 +681,37 @@ class GraphTests(object):
         X = self.H.v('x')
         Y = self.H.v('y')
 
-        result = self.H.search([
+        result = self.H.search(
             {'s': X, 'p': 'friend', 'o': 'charlie'},
-            {'s': Y, 'p': 'friend', 'o': X},
-        ])
+            {'s': Y, 'p': 'friend', 'o': X})
         self.assertEqual(result, {
             'x': set(['huey']),
             'y': set(['charlie']),
         })
 
-        result = self.H.search([
+        result = self.H.search(
             ('charlie', 'friend', X),
             (X, 'friend', Y),
-            (Y, 'friend', 'nuggie'),
-        ])
+            (Y, 'friend', 'nuggie'))
         self.assertEqual(result, {
             'x': set(['huey']),
             'y': set(['mickey']),
         })
 
-        result = self.H.search([
+        result = self.H.search(
             ('huey', 'friend', X),
-            (X, 'friend', Y),
-        ])
+            (X, 'friend', Y))
         self.assertEqual(result['y'], set(['huey', 'nuggie']))
+
+    def test_search_mutual(self):
+        self.create_friends()
+        X = self.H.v('x')
+        Y = self.H.v('y')
+
+        result = self.H.search(
+            {'s': X, 'p': 'friend', 'o': Y},
+            {'s': Y, 'p': 'friend', 'o': X})
+        self.assertEqual(result['y'], set(['charlie', 'huey']))
 
     def create_friends(self):
         data = (

@@ -3,12 +3,22 @@ import itertools
 import json
 
 
+class _VariableGenerator(object):
+    def __getattr__(self, name):
+        return Variable(name)
+
+    def __call__(self, name):
+        return Variable(name)
+
+
 class Hexastore(object):
+
     def __init__(self, database, prefix=''):
         self.database = database
         self.prefix = prefix
+        self.v = _VariableGenerator()
 
-    def store(self, s, p, o):
+    def _data_for_storage(self, s, p, o):
         serialized = json.dumps({
             's': s,
             'p': p,
@@ -18,6 +28,15 @@ class Hexastore(object):
         for key in self.keys_for_values(s, p, o):
             data[key] = serialized
 
+        return data
+
+    def store(self, s, p, o):
+        return self.database.update(self._data_for_storage(s, p, o))
+
+    def store_many(self, items):
+        data = {}
+        for item in items:
+            data.update(self._data_for_storage(*item))
         return self.database.update(data)
 
     def delete(self, s, p, o):
@@ -69,8 +88,7 @@ class Hexastore(object):
     def v(self, name):
         return Variable(name)
 
-    def search(self, conditions):
-        # I don't think this implementation is quite correct.
+    def search(self, *conditions):
         results = {}
 
         for condition in conditions:
@@ -79,54 +97,33 @@ class Hexastore(object):
             else:
                 query = condition.copy()
             materialized = {}
-            tmp_results = {}
             targets = []
 
             for part in ('s', 'p', 'o'):
                 if isinstance(query[part], Variable):
                     variable = query.pop(part)
-                    if variable in results:
-                        materialized[part] = results[variable]
+                    materialized[part] = set()
                     targets.append((variable, part))
 
-            if len(materialized) == 2:
-                # Use itertools.product?
-                pass
-            elif len(materialized) == 1:
-                part, values = materialized.items()[0]
-                for var, target in targets:
-                    tmp_results.setdefault(target, set())
+            # Potentially rather than popping all the variables, we could use
+            # the result values from a previous condition and do O(results)
+            # loops looking for a single variable.
+            for result in self.query(**query):
+                ok = True
+                for var, part in targets:
+                    if var in results and result[part] not in results[var]:
+                        ok = False
+                        break
 
-                for value in values:
-                    query[part] = value
-                    for result in self.query(**query):
-                        for var, target in targets:
-                            tmp_results[target].add(result[target])
-            else:
-                for var, target in targets:
-                    tmp_results.setdefault(target, set())
-                for result in self.query(**query):
-                    for var, target in targets:
-                        tmp_results[target].add(result[target])
+                if ok:
+                    for var, part in targets:
+                        materialized[part].add(result[part])
 
-            # Populate some result sets.
-            for variable, target in targets:
-                tmp_results[target] = set()
-                if materialized:
-                    for part, values in materialized.items():
-                        for value in values:
-                            query[part] = str(value)
-                            for result in self.query(**query):
-                                tmp_results[target].add(result[target])
-
-                    if variable in results:
-                        results[variable] &= tmp_results[target]
-                    else:
-                        results[variable] = tmp_results[target]
+            for var, part in targets:
+                if var in results:
+                    results[var] &= materialized[part]
                 else:
-                    results.setdefault(variable, set())
-                    for result in self.query(**query):
-                        results[variable].add(result[target])
+                    results[var] = materialized[part]
 
         return dict((var.name, vals) for (var, vals) in results.items())
 
