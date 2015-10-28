@@ -13,13 +13,16 @@ class _VariableGenerator(object):
 
 class Hexastore(object):
 
-    def __init__(self, database, prefix=''):
+    def __init__(self, database, prefix='', serialize=json.dumps,
+                 deserialize=json.loads):
         self.database = database
         self.prefix = prefix
+        self.serialize = serialize
+        self.deserialize = deserialize
         self.v = _VariableGenerator()
 
     def _data_for_storage(self, s, p, o):
-        serialized = json.dumps({
+        serialized = self.serialize({
             's': s,
             'p': p,
             'o': o})
@@ -76,14 +79,15 @@ class Hexastore(object):
 
     def query(self, s=None, p=None, o=None):
         start, end = self.keys_for_query(s, p, o)
+        deserialize = self.deserialize
         if end is None:
             try:
-                yield json.loads(self.database[start])
+                yield deserialize(self.database[start])
             except KeyError:
                 raise StopIteration
         else:
             for key, value in self.database[start:end]:
-                yield json.loads(value)
+                yield deserialize(value)
 
     def v(self, name):
         return Variable(name)
