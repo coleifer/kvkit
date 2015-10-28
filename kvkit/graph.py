@@ -89,6 +89,26 @@ class Hexastore(object):
                         materialized[part] = results[variable]
                     targets.append((variable, part))
 
+            if len(materialized) == 2:
+                # Use itertools.product?
+                pass
+            elif len(materialized) == 1:
+                part, values = materialized.items()[0]
+                for var, target in targets:
+                    tmp_results.setdefault(target, set())
+
+                for value in values:
+                    query[part] = value
+                    for result in self.query(**query):
+                        for var, target in targets:
+                            tmp_results[target].add(result[target])
+            else:
+                for var, target in targets:
+                    tmp_results.setdefault(target, set())
+                for result in self.query(**query):
+                    for var, target in targets:
+                        tmp_results[target].add(result[target])
+
             # Populate some result sets.
             for variable, target in targets:
                 tmp_results[target] = set()
