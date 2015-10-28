@@ -70,55 +70,43 @@ class Hexastore(object):
         return Variable(name)
 
     def search(self, conditions):
-        """
-        var x = graph.v('x')
-        graph.search([
-          { s: 'matteo', p: 'friend', oect: x },
-          { s: x, p: 'likes', oect: 'beer' },
-          { s: x, p: 'lives', oect: 'brescia' }
-        ], function(err, solutions) {
-          alert(JSON.stringify(solutions))
-        })
-
-        By combining different queries, I can ask fancy questions. For
-        example: What are all my friends that, like beer, live in Barcelona,
-        and matteocollina consider friends as well? To get this information I
-        start with an spo query to find all the people I'm friend with. Than
-        for each result I get I perform an spo query to check if they like
-        beer, removing the ones for which I can't find this relation. I do it
-        again to filter by city. Finally I perform an ops query to find, of
-        the list I obtained, who is considered friend by matteocollina.
-        """
-        var_map = {}
+        # I don't think this implementation is quite correct.
         results = {}
 
         for condition in conditions:
-            query = condition.copy()
-            var_map = {}
-            result_map = {}
+            if isinstance(condition, tuple):
+                query = dict(zip('spo', condition))
+            else:
+                query = condition.copy()
+            materialized = {}
+            tmp_results = {}
+            targets = []
 
             for part in ('s', 'p', 'o'):
                 if isinstance(query[part], Variable):
                     variable = query.pop(part)
-                    var_map[part] = variable
+                    if variable in results:
+                        materialized[part] = results[variable]
+                    targets.append((variable, part))
 
             # Populate some result sets.
-            var_map_items = var_map.items()
-            for part, var in var_map_items:
-                result_map[part] = set()
+            for variable, target in targets:
+                tmp_results[target] = set()
+                if materialized:
+                    for part, values in materialized.items():
+                        for value in values:
+                            query[part] = str(value)
+                            for result in self.query(**query):
+                                tmp_results[target].add(result[target])
 
-                if var in results:
-                    for val in results[var]:
-                        query[part] = val
-                        for result in self.query(**query):
-                            result_map[part].add(result[part])
-
-                    results[var] = results[var] & result_map[part]
-                    del query[part]
+                    if variable in results:
+                        results[variable] &= tmp_results[target]
+                    else:
+                        results[variable] = tmp_results[target]
                 else:
-                    results.setdefault(var, set())
+                    results.setdefault(variable, set())
                     for result in self.query(**query):
-                        results[var].add(result[part])
+                        results[variable].add(result[target])
 
         return dict((var.name, vals) for (var, vals) in results.items())
 
@@ -128,3 +116,6 @@ class Variable(object):
 
     def __init__(self, name):
         self.name = name
+
+    def __repr__(self):
+        return '<Variable: %s>' % (self.name)

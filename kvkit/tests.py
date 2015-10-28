@@ -628,7 +628,45 @@ class GraphTests(object):
         ])
         self.assertEqual(result, {'x': set(['huey', 'zaizee'])})
 
+    def test_search_simple(self):
+        self.create_friends()
+        X = self.H.v('x')
+        result = self.H.search([
+            {'s': X, 'p': 'friend', 'o': 'charlie'},
+        ])
+        self.assertEqual(result, {'x': set(['huey', 'zaizee'])})
+
     def test_search_2var(self):
+        self.create_friends()
+        X = self.H.v('x')
+        Y = self.H.v('y')
+
+        result = self.H.search([
+            {'s': X, 'p': 'friend', 'o': 'charlie'},
+            {'s': Y, 'p': 'friend', 'o': X},
+        ])
+        self.assertEqual(result, {
+            'x': set(['huey']),
+            'y': set(['charlie']),
+        })
+
+        result = self.H.search([
+            ('charlie', 'friend', X),
+            (X, 'friend', Y),
+            (Y, 'friend', 'nuggie'),
+        ])
+        self.assertEqual(result, {
+            'x': set(['huey']),
+            'y': set(['mickey']),
+        })
+
+        result = self.H.search([
+            ('huey', 'friend', X),
+            (X, 'friend', Y),
+        ])
+        self.assertEqual(result['y'], set(['huey', 'nuggie']))
+
+    def create_friends(self):
         data = (
             ('charlie', 'friend', 'huey'),
             ('huey', 'friend', 'charlie'),
@@ -637,14 +675,8 @@ class GraphTests(object):
             ('zaizee', 'friend', 'mickey'),
             ('mickey', 'friend', 'nuggie'),
         )
-        X = self.H.v('x')
-        Y = self.H.v('y')
-        result = self.H.search([
-            {'s': 'charlie', 'p': 'friend', 'o': X},
-            {'s': X, 'p': 'friend', 'o': Y},
-            {'s': Y, 'p': 'friend', 'o': 'nuggie'},
-        ])
-        import ipdb; ipdb.set_trace()
+        for item in data:
+            self.H.store(*item)
 
 
 class HashTests(KVKitTests, BaseTestCase):
@@ -659,26 +691,27 @@ class CacheHashTests(KVKitTests, BaseTestCase):
     database_class = CacheHashDB
 
 
-class CacheTreeTests(KVKitTests, ModelTests, SliceTests, BaseTestCase):
+class CacheTreeTests(KVKitTests, GraphTests, ModelTests, SliceTests,
+                     BaseTestCase):
     database_class = CacheTreeDB
 
 
-if False and BerkeleyDB:
+if BerkeleyDB:
     class BerkeleyDBTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
         database_class = BerkeleyDB
 
 
-if False and LevelDB:
+if LevelDB:
     class LevelDBTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
         database_class = LevelDB
 
 
-if False and LSM:
+if LSM:
     class LSMTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
         database_class = LSM
 
 
-if False and RocksDB:
+if RocksDB:
     # RocksDB does not implement an actual `close()` method, so we cannot
     # reliably re-use the same database file due to locks hanging around.
     # For that reason, each test needs to either re-use the same DB or use
