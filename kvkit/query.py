@@ -247,7 +247,7 @@ class Model(with_metaclass(DeclarativeMeta)):
         return instance
 
     @classmethod
-    def get(cls, primary_key):
+    def load(cls, primary_key):
         return cls(**cls._read_model_data(primary_key))
 
     def save(self, atomic=True):
@@ -352,6 +352,12 @@ class Model(with_metaclass(DeclarativeMeta)):
             index.delete(getattr(self, field), self.id)
 
     @classmethod
+    def get(cls, expr):
+        results = cls.query(expr)
+        if results:
+            return results[0]
+
+    @classmethod
     def query(cls, expr):
         def dfs(expr):
             lhs = expr.lhs
@@ -369,10 +375,10 @@ class Model(with_metaclass(DeclarativeMeta)):
             elif expr.op == 'OR':
                 return set(lhs) | set(rhs)
             else:
-                raise ValueError('???')
+                raise ValueError('Unable to execute query, unexpected type.')
 
         id_list = dfs(expr)
-        return [cls.get(primary_key) for primary_key in sorted(id_list)]
+        return [cls.load(primary_key) for primary_key in sorted(id_list)]
 
 
 class Index(object):

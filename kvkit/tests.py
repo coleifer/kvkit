@@ -355,13 +355,13 @@ class ModelTests(object):
         self.assertEqual(ziggy.last, None)
         self.assertEqual(ziggy.id, 2)
 
-        huey_db = self.Person.get(1)
+        huey_db = self.Person.load(1)
         self.assertEqual(huey_db.first, 'huey')
         self.assertEqual(huey_db.last, 'leifer')
         self.assertEqual(huey_db.dob, datetime.date(2010, 1, 2))
         self.assertEqual(huey_db.id, 1)
 
-        ziggy_db = self.Person.get(2)
+        ziggy_db = self.Person.load(2)
         self.assertEqual(ziggy_db.first, 'ziggy')
         self.assertEqual(ziggy_db.last, '')
         self.assertEqual(ziggy_db.dob, datetime.date(2011, 2, 3))
@@ -393,7 +393,7 @@ class ModelTests(object):
         self.assertTrue(note.timestamp is not None)
         self.assertEqual(note.id, 1)
 
-        note_db = self.Note.get(note.id)
+        note_db = self.Note.load(note.id)
         self.assertEqual(note_db.content, 'note 1')
         self.assertEqual(note_db.timestamp, note.timestamp)
         self.assertEqual(note_db.id, 1)
@@ -430,21 +430,19 @@ class ModelTests(object):
             self.Person.last == 'owen',
             ['zaizee', 'beanie', 'scout'])
 
-    def test_startswith(self):
-        names = ('aaa', 'aab', 'abb', 'bbb', 'ba')
-        for name in names:
-            self.Person.create(first=name, last=name)
+    def test_get(self):
+        self._create_people()
+        huey = self.Person.get(self.Person.first == 'huey')
+        self.assertEqual(huey.first, 'huey')
+        self.assertEqual(huey.last, 'leifer')
 
-        self.assertPeople(
-            self.Person.last.startswith('a'),
-            ['aaa', 'aab', 'abb'])
+        zaizee = self.Person.get(
+            (self.Person.first == 'zaizee') &
+            (self.Person.last == 'owen'))
+        self.assertEqual(zaizee.first, 'zaizee')
+        self.assertEqual(zaizee.last, 'owen')
 
-        self.assertPeople(self.Person.last.startswith('aa'), ['aaa', 'aab'])
-        self.assertPeople(self.Person.last.startswith('aaa'), ['aaa'])
-        self.assertPeople(self.Person.last.startswith('aaaa'), [])
-        self.assertPeople(self.Person.last.startswith('b'), ['bbb', 'ba'])
-        self.assertPeople(self.Person.last.startswith('bb'), ['bbb'])
-        self.assertPeople(self.Person.last.startswith('c'), [])
+        self.assertIsNone(self.Person.get(self.Person.first == 'not here'))
 
     def test_query_tree(self):
         self._create_people()
@@ -495,6 +493,22 @@ class ModelTests(object):
         # Greater than or equal to a non-existant value.
         expr = (self.Person.first >= 'nuggie')
         self.assertPeople(expr, ['zaizee', 'scout'])
+
+    def test_startswith(self):
+        names = ('aaa', 'aab', 'abb', 'bbb', 'ba')
+        for name in names:
+            self.Person.create(first=name, last=name)
+
+        self.assertPeople(
+            self.Person.last.startswith('a'),
+            ['aaa', 'aab', 'abb'])
+
+        self.assertPeople(self.Person.last.startswith('aa'), ['aaa', 'aab'])
+        self.assertPeople(self.Person.last.startswith('aaa'), ['aaa'])
+        self.assertPeople(self.Person.last.startswith('aaaa'), [])
+        self.assertPeople(self.Person.last.startswith('b'), ['bbb', 'ba'])
+        self.assertPeople(self.Person.last.startswith('bb'), ['bbb'])
+        self.assertPeople(self.Person.last.startswith('c'), [])
 
     def create_numeric(self):
         values = (
