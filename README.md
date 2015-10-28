@@ -245,3 +245,11 @@ All databases also implement:
 * `decr()`
 * `open()`
 * `close()`
+
+### Installation
+
+`kvkit` can be installed from PyPI:
+
+```console
+$ pip install kvkit
+```
