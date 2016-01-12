@@ -27,6 +27,7 @@ if __name__ == '__main__':
     opt('-l', '--lsm', dest='lsm', action='store_true')
     opt('-m', '--minimal', dest='minimal', action='store_true')
     opt('-r', '--rocksdb', dest='rocksdb', action='store_true')
+    opt('-s', '--sophia', dest='sophia', action='store_true')
     opt('-T', '--kyoto-tree', dest='kyoto_tree', action='store_true')
     opt('-v', '--leveldb', dest='leveldb', action='store_true')
 
@@ -48,6 +49,8 @@ if __name__ == '__main__':
             cases.add('LevelDBTests')
         if options.lsm:
             cases.add('LSMTests')
+        if options.sophia:
+            cases.add('SophiaTests')
         if options.rocksdb:
             cases.add('RocksDBTests')
 

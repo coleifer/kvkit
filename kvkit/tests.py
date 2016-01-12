@@ -28,6 +28,11 @@ except ImportError:
     RocksDB = None
 
 try:
+    from kvkit.backends.sophia import Sophia
+except ImportError:
+    Sophia = None
+
+try:
     from kvkit.backends.sqlite4 import LSM
 except ImportError:
     LSM = None
@@ -786,6 +791,24 @@ if LevelDB:
 if LSM:
     class LSMTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
         database_class = LSM
+
+
+if Sophia:
+    class SophiaTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
+        database_class = Sophia
+        _test_dir = '/tmp/sophia-db'
+
+        def create_db(self):
+            return self.database_class(os.path.join(self._test_dir, 'test-db'))
+
+        def delete_db(self):
+            self.db.close()
+            if os.path.exists(self._test_dir):
+                shutil.rmtree(self._test_dir)
+
+        def test_slice_start_end(self):
+            # Sophia operates a bit differently, and probably more correctly.
+            pass
 
 
 if RocksDB:
