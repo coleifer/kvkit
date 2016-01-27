@@ -18,6 +18,11 @@ except ImportError:
     BerkeleyDB = None
 
 try:
+    from kvkit.backends.forest import ForestDB
+except ImportError:
+    ForestDB = None
+
+try:
     from kvkit.backends.leveldb import LevelDB
 except ImportError:
     LevelDB = None
@@ -792,6 +797,14 @@ if LSM:
     class LSMTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
         database_class = LSM
 
+
+if ForestDB:
+    class ForestDBTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
+        database_class = ForestDB
+
+        def test_slice_start_end(self):
+            # ForestDB operates a bit differently, and probably more correctly.
+            pass
 
 if Sophia:
     class SophiaTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
