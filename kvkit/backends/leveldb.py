@@ -4,6 +4,7 @@ import struct
 
 import plyvel
 
+from kvkit.backends.helpers import clean_key_slice
 from kvkit.backends.helpers import KVHelper
 
 
@@ -16,14 +17,11 @@ class LevelDB(KVHelper):
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            if key.start > key.stop or key.step:
-                start = key.stop
-                stop = key.start
-                reverse = True
-            else:
-                start = key.start
-                stop = key.stop
-                reverse = False
+            start, stop, reverse = clean_key_slice(key)
+            if reverse:
+                # LevelDB uses slightly different meaning for start/stop when
+                # reverse than kyotocabinet.
+                start, stop = stop, start
             return self.db.iterator(
                 start=start,
                 stop=stop,

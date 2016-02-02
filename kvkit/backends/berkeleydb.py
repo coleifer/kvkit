@@ -56,6 +56,9 @@ class BerkeleyDB(KVHelper, bsddb3._DBWithCursor):
             yield key, value
 
     def get_slice_rev(self, start, end):
+        if start is None or end is None:
+            start, end = end, start
+
         if start is None:
             key, value = self.last()
         else:

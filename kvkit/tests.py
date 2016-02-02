@@ -310,10 +310,10 @@ class SliceTests(object):
         self.assertSlice(s, ['aa', 'aa1', 'aa2', 'bb'])
 
         s = self.db[:'cc':True]
-        self.assertSlice(s, ['ff', 'ee', 'dd', 'cc'])
+        self.assertSlice(s, ['cc', 'bb', 'aa2', 'aa1', 'aa'])
 
         s = self.db['cc'::True]
-        self.assertSlice(s, ['cc', 'bb', 'aa2', 'aa1', 'aa'])
+        self.assertSlice(s, ['ff', 'ee', 'dd', 'cc'])
 
 
 class ModelTests(object):
@@ -802,10 +802,6 @@ if ForestDB:
     class ForestDBTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
         database_class = ForestDB
 
-        def test_slice_start_end(self):
-            # ForestDB operates a bit differently, and probably more correctly.
-            pass
-
 if Sophia:
     class SophiaTests(SliceTests, GraphTests, ModelTests, BaseTestCase):
         database_class = Sophia
@@ -818,10 +814,6 @@ if Sophia:
             self.db.close()
             if os.path.exists(self._test_dir):
                 shutil.rmtree(self._test_dir)
-
-        def test_slice_start_end(self):
-            # Sophia operates a bit differently, and probably more correctly.
-            pass
 
 
 if RocksDB:

@@ -5,6 +5,7 @@ import struct
 # See http://pyrocksdb.readthedocs.org/en/latest/tutorial/index.html
 import rocksdb
 
+from kvkit.backends.helpers import clean_key_slice
 from kvkit.backends.helpers import KVHelper
 
 
@@ -18,10 +19,11 @@ class RocksDB(KVHelper):
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            if key.start > key.stop or key.step:
-                return self.get_slice_rev(key.start, key.stop)
+            start, stop, reverse = clean_key_slice(key)
+            if reverse:
+                return self.get_slice_rev(start, stop)
             else:
-                return self.get_slice(key.start, key.stop)
+                return self.get_slice(start, stop)
         elif isinstance(key, (list, tuple)):
             return self.db.multi_get(key)
         else:

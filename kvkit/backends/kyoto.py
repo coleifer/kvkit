@@ -6,6 +6,7 @@ import struct
 import kyotocabinet as kc
 
 from kvkit.exceptions import DatabaseError
+from kvkit.backends.helpers import clean_key_slice
 
 
 # Generic modes.
@@ -199,10 +200,11 @@ class Database(object):
         if isinstance(key, (list, tuple)):
             return self.db.get_bulk(key, True)
         elif isinstance(key, slice):
-            if key.start > key.stop or key.stop is None or key.step:
-                return self.get_slice_rev(key.start, key.stop)
+            start, stop, reverse = clean_key_slice(key)
+            if reverse:
+                return self.get_slice_rev(start, stop)
             else:
-                return self.get_slice(key.start, key.stop)
+                return self.get_slice(start, stop)
         else:
             value = self.db.get(key)
             if value is None:
