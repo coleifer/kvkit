@@ -2,7 +2,7 @@
 from contextlib import contextmanager
 import struct
 
-# See http://pyrocksdb.readthedocs.org/en/latest/tutorial/index.html
+# See https://pyrocksdb.readthedocs.io/en/latest/tutorial/index.html
 import rocksdb
 
 from kvkit.backends.helpers import clean_key_slice

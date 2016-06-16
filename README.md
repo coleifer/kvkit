@@ -6,9 +6,9 @@ Supports:
 
 * [BerkeleyDB](http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/downloads/index.html) via [bsddb3](https://www.jcea.es/programacion/pybsddb_doc/).
 * [KyotoCabinet](http://fallabs.com/kyotocabinet/) via [Python 2.x bindings](http://fallabs.com/kyotocabinet/pythonlegacydoc/).
-* [LevelDB](http://leveldb.org/) via [plyvel](https://plyvel.readthedocs.org/en/latest/).
-* [RocksDB](http://rocksdb.org/) via [pyrocksdb](http://pyrocksdb.readthedocs.org/en/v0.4/)
-* [Sqlite4 LSM DB](https://www.sqlite.org/src4/doc/trunk/www/lsmusr.wiki) via [python-lsm-db](http://lsm-db.readthedocs.org/en/latest/)
+* [LevelDB](http://leveldb.org/) via [plyvel](https://plyvel.readthedocs.io/en/latest/).
+* [RocksDB](http://rocksdb.org/) via [pyrocksdb](https://pyrocksdb.readthedocs.io/en/v0.4/)
+* [Sqlite4 LSM DB](https://www.sqlite.org/src4/doc/trunk/www/lsmusr.wiki) via [python-lsm-db](https://lsm-db.readthedocs.io/en/latest/)
 
 Right now KyotoCabinet is the most well-supported database, but the SQLite4 LSM is also pretty robust. The other databases implement the minimal slicing APIs to enable the Model/Secondary Indexing APIs to work.
 
