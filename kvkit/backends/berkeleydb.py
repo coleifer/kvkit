@@ -6,7 +6,7 @@ from kvkit.backends.helpers import KVHelper
 
 
 class BerkeleyDB(KVHelper, bsddb3._DBWithCursor):
-    def __init__(self, filename, flag='c', mode=0666, btflags=0,
+    def __init__(self, filename, flag='c', mode=0o666, btflags=0,
                  cache_size=None, maxkeypage=None, minkeypage=None,
                  page_size=None, lorder=None):
 
