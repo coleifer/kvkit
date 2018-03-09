@@ -43,4 +43,4 @@ from kvkit.query import LongField
 from kvkit.query import Model
 
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
